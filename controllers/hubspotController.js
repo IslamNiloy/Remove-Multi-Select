@@ -35,9 +35,9 @@ const REDIRECT_URI = process.env.REDIRECT_URI;
 
 const authUrl =
   'https://app.hubspot.com/oauth/authorize' +
-  `?client_id=${encodeURIComponent(CLIENT_ID)}` + // app's client ID
-  `&scope=${encodeURIComponent(SCOPES)}` + // scopes being requested by the app
-  `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`; // where to send the user after the consent page
+  `?client_id=${encodeURIComponent(CLIENT_ID)}` + 
+  `&scope=${encodeURIComponent(SCOPES)}` + 
+  `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`; 
 
 exports.install =  (req, res) => {
   res.redirect(authUrl);
@@ -221,7 +221,7 @@ exports.home = async (req, res) => {
           <p>Welcome to the Hubxpert App, your go-to solution for seamless HubSpot integration and data formatting. Our app provides custom workflow actions to format data, making your HubSpot experience more efficient and effective.</p>
         </section>
         <section class="install-section">
-          <a href="http://localhost:3000/install" class="install-button">Install the App</a>
+          <a href="${process.env.INSTALL_URL}" class="install-button">Install the App</a>
         </section>
       </main>
       <footer>
