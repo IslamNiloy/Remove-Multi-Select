@@ -7,6 +7,6 @@ const workflow = require('../controllers/createWorkflowAction')
 router.post('/get-object', getObjectTypes);
 router.post('/get-multiselect-properties', getMultiSelectProperties);
 router.post('/get-property-options', getPropertyOptions);
-router.get('/create-workflow', workflow)
+router.get('/create-workflow', workflow.createWorkflowAction)
 
 module.exports = router;
