@@ -10,6 +10,7 @@ const app = express();
 const PORT = 3000;
 const userRoutes = require('./routes/userRoutes');
 const hubspotRoutes = require('./routes/hubspotRoutes');
+const workflowRoutes = require('./routes/workflowRoutes');
 
 // Use morgan to log HTTP requests
 app.use(morgan('dev'));  // Log requests to the console in 'dev' format
@@ -23,5 +24,6 @@ app.use(session({
 
 app.use('/', hubspotRoutes);
 app.use('/', userRoutes);
+app.use('/', workflowRoutes);
 
 app.listen(PORT, () => console.log(`=== Starting your app on http://localhost:${PORT} ===`));
