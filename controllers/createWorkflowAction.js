@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const createWorkflowAction = async () => {
+ exports.createWorkflowAction = async () => {
   const apiKey = process.env.HUBSPOT_API_KEY; // API Key or OAuth Token
   const url = `https://api.hubapi.com/automation/v4/actions/${process.env.HUBSPOT_APP_ID}`;
 
@@ -107,4 +107,4 @@ const createWorkflowAction = async () => {
   }
 };
 
-createWorkflowAction();
+// createWorkflowAction();
