@@ -176,6 +176,25 @@ exports.home = async (req, res) => {
           font-size: 1.2em;
           color: #333;
         }
+        .install-section {
+          margin-top: 30px;
+        }
+        .install-button {
+          padding: 10px 20px;
+          font-size: 20px;
+          font-weight: bold;
+          background-color: #f2750e;
+          border: none;
+          border-radius: 5px;
+          color: #fff;
+          cursor: pointer;
+          transition: transform 0.2s ease;
+          text-decoration: none;
+          display: inline-block;
+        }
+        .install-button:hover {
+          transform: scale(1.1);
+        }
         footer {
           background-color: #f1f1f1;
           text-align: center;
@@ -189,46 +208,27 @@ exports.home = async (req, res) => {
           color: #004080;
           text-decoration: none;
         }
-        .success {
-          background-color: #64bae2;
-          padding: 20px;
-          border-radius: 10px;
-          text-align: center;
-          margin-bottom: 20px;
-        }
-        .success h2 {
-          color: #fff;
-          margin-top: 0;
-        }
-        .success p {
-          color: #fff;
-        }
-        .install-button {
-          padding: 10px 20px;
-          font-size: 20px;
-          font-weight: bold;
-          background-color: #f2750e;
-          border: none;
-          border-radius: 5px;
-          color: #fff;
-          cursor: pointer;
-          transition: transform 0.2s ease;
-          text-decoration: none;
-        }
-        .install-button:hover {
-          transform: scale(1.1);
-        }
       </style>
     </head>
     <body>
       <header>
         <a href="https://www.hubxpert.com/"><img src="https://static.wixstatic.com/media/2369f3_e7a786f139044881883babb752b00212~mv2.png/v1/fill/w_388,h_154,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/2369f3_e7a786f139044881883babb752b00212~mv2.png" alt="Hubxpert Logo" class="logo"></a>
-        <h1>Data Formatter App By HubXpert</h1>
+        <h1>Remove Multi Select App By HubXpert</h1>
       </header>
       <main>
         <section class="description">
           <h2>About Our App</h2>
           <p>Welcome to the Hubxpert App, your go-to solution for seamless HubSpot integration and data formatting. Our app provides custom workflow actions to format data, making your HubSpot experience more efficient and effective.</p>
         </section>
+        <section class="install-section">
+          <a href="http://localhost:3000/install" class="install-button">Install the App</a>
+        </section>
+      </main>
+      <footer>
+        <p>&copy; 2024 HubXpert. All rights reserved. <a href="https://www.hubxpert.com">Visit HubXpert</a></p>
+      </footer>
+    </body>
+    </html>
   `);
-}
+  res.end();
+};
