@@ -1,9 +1,9 @@
 require('dotenv').config();
 const express = require('express');
-const request = require('request-promise-native');
-const NodeCache = require('node-cache');
+const morgan = require('morgan');  
 const session = require('express-session');
-const morgan = require('morgan');  // Import morgan for logging
+const MongoStore = require('connect-mongo');
+const mongoose = require('mongoose');
 
 const app = express();
 
@@ -15,16 +15,35 @@ const workflowRoutes = require('./routes/workflowRoutes');
 // Use morgan to log HTTP requests
 app.use(morgan('dev'));  // Log requests to the console in 'dev' format
 
-// Use a session to keep track of client ID
 app.use(session({
-  secret: Math.random().toString(36).substring(2),
+  secret: 'your-session-secret',
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGO_URI,  // MongoDB connection string
+    collectionName: 'sessions'
+  }),
+  cookie: { maxAge: 24 * 60 * 60 * 1000 }  // 1-day session expiration
 }));
 
+// Use a session to keep track of client ID
+// app.use(session({
+//   secret: Math.random().toString(36).substring(2),
+//   resave: false,
+//   saveUninitialized: true
+// }));
+
+// MongoDB connection
+const mongoUri = process.env.MONGO_URI;  // Ensure MONGO_URI is set in your .env file
+
+mongoose.connect(mongoUri)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('MongoDB connection error:', err));
+
+// Routes
 app.use('/', hubspotRoutes);
 app.use('/', userRoutes);
 app.use('/', workflowRoutes);
 
-
+// Start server
 app.listen(PORT, () => console.log(`=== Starting your app on http://localhost:${PORT} ===`));

@@ -1,12 +1,12 @@
 const axios = require('axios');
 
- exports.createWorkflowAction = async () => {
-  const apiKey = process.env.HUBSPOT_API_KEY; // API Key or OAuth Token
-  const url = `https://api.hubapi.com/automation/v4/actions/${process.env.HUBSPOT_APP_ID}`;
+exports.createWorkflowAction = async () => {
+  const hapikey = process.env.HUBSPOT_API_KEY; // Your HubSpot Developer API key
+  const url = `https://api.hubapi.com/automation/v4/actions/${process.env.HUBSPOT_APP_ID}?hapikey=${hapikey}`;
 
   const workflowAction = {
-    actionUrl: "https://remove-multi-select.vercel.app/remove-multiselect-value", // Backend API URL
-    objectTypes: ["CONTACT"], 
+    actionUrl: `${process.env.WEB_URL}remove-multiselect-value`, // Your backend API URL
+    objectTypes: ["CONTACT"],  // You can add more object types like "DEAL" or "COMPANY"
     published: true,
     inputFields: [
       {
@@ -17,8 +17,11 @@ const axios = require('axios');
         },
         supportedValueTypes: ["STATIC_VALUE"],
         isRequired: true,
-        // Dynamic dropdown for objects
-        dynamicOptionsUrl: "https://remove-multi-select.vercel.app/get-object"
+        dynamicOptionsUrl: {
+          url: `${process.env.WEB_URL}/get-object`,
+          method: "POST",
+          requestBodyTemplate: "{}"  // No additional data is required; we'll identify the HubSpot account from the OAuth token
+        }
       },
       {
         typeDefinition: {
@@ -28,8 +31,11 @@ const axios = require('axios');
         },
         supportedValueTypes: ["STATIC_VALUE"],
         isRequired: true,
-        // Dynamic dropdown for multi-select properties
-        dynamicOptionsUrl: "https://remove-multi-select.vercel.app/get-multiselect-properties?objectType={{objectType}}"
+        dynamicOptionsUrl: {
+          url: `${process.env.WEB_URL}/get-multiselect-properties`,
+          method: "POST",
+          requestBodyTemplate: '{"objectType": "{{objectType}}"}'  // Pass the selected object type dynamically
+        }
       },
       {
         typeDefinition: {
@@ -39,8 +45,11 @@ const axios = require('axios');
         },
         supportedValueTypes: ["STATIC_VALUE"],
         isRequired: true,
-        // Dynamic options for property values
-        dynamicOptionsUrl: "https://remove-multi-select.vercel.app/get-property-options?objectType={{objectType}}&propertyName={{multiselectProperty}}"
+        dynamicOptionsUrl: {
+          url: `${process.env.WEB_URL}/get-property-options`,
+          method: "POST",
+          requestBodyTemplate: '{"objectType": "{{objectType}}", "propertyName": "{{multiselectProperty}}"}'  // Pass both objectType and propertyName
+        }
       }
     ],
     outputFields: [
@@ -75,7 +84,7 @@ const axios = require('axios');
         functionType: "PRE_ACTION_EXECUTION",
         functionSource: `exports.main = function(event, callback) {
           const { objectType, multiselectProperty, removeValue } = event.inputFields;
-          const webhookUrl = 'https://your-backend-url/remove-multiselect-value';
+          const webhookUrl = "${process.env.WEB_URL}/remove-multiselect-value";
           const body = {
             objectType,
             multiselectProperty,
@@ -97,7 +106,6 @@ const axios = require('axios');
   try {
     const response = await axios.post(url, workflowAction, {
       headers: {
-        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       }
     });
@@ -107,4 +115,3 @@ const axios = require('axios');
   }
 };
 
-// createWorkflowAction();

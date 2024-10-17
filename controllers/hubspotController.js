@@ -3,6 +3,7 @@ const express = require('express');
 const request = require('request-promise-native');
 const NodeCache = require('node-cache');
 const session = require('express-session');
+const Token = require('../models/tokenModel');
 // const opn = require('open');
 const app = express();
 
@@ -45,9 +46,6 @@ exports.install =  (req, res) => {
   // logWithDetails('info', 'Redirected user to HubSpot OAuth URL for installation', req);
 };
 
-
-
-
 exports.oauthCallback = async (req, res) => {
   console.log('===> Step 3: Handling the request sent by the server');
   if (req.query.code) {
@@ -55,65 +53,135 @@ exports.oauthCallback = async (req, res) => {
 
     const authCodeProof = {
       grant_type: 'authorization_code',
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      redirect_uri: REDIRECT_URI,
+      client_id: process.env.CLIENT_ID,
+      client_secret: process.env.CLIENT_SECRET,
+      redirect_uri: process.env.REDIRECT_URI,
       code: req.query.code
     };
 
-    // Step 4
-    // Exchange the authorization code for an access token and refresh token
-    console.log('===> Step 4: Exchanging authorization code for an access token and refresh token');
-    const token = await exchangeForTokens(req.sessionID, authCodeProof);
-    if (token.message) {
-      return res.redirect(`/error?msg=${token.message}`);
-    }
+    try {
+      const { accessToken, portalId } = await exchangeForTokens(authCodeProof);
 
-    res.redirect(`/`);
+      if (!accessToken) {
+        return res.redirect(`/error?msg=Token exchange failed`);
+      }
+
+      // Store portalId in the session
+      req.session.portalId = portalId;
+
+      res.redirect(`/`);  // Redirect to home or dashboard after successful token exchange
+    } catch (error) {
+      console.error('Error during token exchange:', error.message);
+      res.redirect(`/error?msg=${encodeURIComponent(error.message)}`);
+    }
+  } else {
+    res.redirect(`/error?msg=No authorization code found`);
   }
 };
+
 
 //==========================================//
 //   Exchanging Proof for an Access Token   //
 //==========================================//
 
-const exchangeForTokens = async (userId, exchangeProof) => {
+const getPortalIdFromAccessToken = async (accessToken) => {
+  try {
+    const response = await request({
+      url: `https://api.hubapi.com/oauth/v1/access-tokens/${accessToken}`,
+      json: true
+    });
+    return response.hub_id;  // This will give you the portalId (HubSpot account ID)
+  } catch (e) {
+    console.error('Error retrieving portalId:', e.message);
+    throw new Error('Failed to retrieve portalId from HubSpot');
+  }
+};
+
+const exchangeForTokens = async (exchangeProof) => {
   try {
     const responseBody = await request.post('https://api.hubapi.com/oauth/v1/token', {
       form: exchangeProof
     });
-    // Usually, this token data should be persisted in a database and associated with
-    // a user identity.
     const tokens = JSON.parse(responseBody);
-    refreshTokenStore[userId] = tokens.refresh_token;
-    accessTokenCache.set(userId, tokens.access_token, Math.round(tokens.expires_in * 0.75));
 
-    console.log('       > Received an access token and refresh token');
-    return tokens.access_token;
+    // Get the portalId (HubSpot's account ID) from the access token
+    const portalId = await getPortalIdFromAccessToken(tokens.access_token);
+
+    if (!portalId) {
+      throw new Error('Failed to retrieve portalId from HubSpot');
+    }
+
+    const expiresAt = new Date();
+    expiresAt.setSeconds(expiresAt.getSeconds() + tokens.expires_in);
+
+    // Store tokens in the database using the portalId as a unique identifier
+    await Token.findOneAndUpdate(
+      { portalId },  // Use the portalId to identify the user
+      {
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token,
+        expiresAt
+      },
+      { upsert: true, new: true }  // Create a new record if it doesn't exist, or update if it does
+    );
+
+    console.log(`Stored access token and refresh token for portalId ${portalId}`);
+    return { accessToken: tokens.access_token, portalId };  // Return access token and portalId
   } catch (e) {
-    console.error(`       > Error exchanging ${exchangeProof.grant_type} for access token`);
-    return JSON.parse(e.response.body);
+    console.error('Error exchanging tokens:', e.message);
+    throw new Error('Token exchange failed');
   }
 };
 
-const refreshAccessToken = async (userId) => {
+
+
+const refreshAccessToken = async (portalId) => {
+  const tokenRecord = await Token.findOne({ portalId });
+
+  if (!tokenRecord) {
+    throw new Error(`No stored refresh token found for portal ${portalId}`);
+  }
+
   const refreshTokenProof = {
     grant_type: 'refresh_token',
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
-    redirect_uri: REDIRECT_URI,
-    refresh_token: refreshTokenStore[userId]
+    client_id: process.env.CLIENT_ID,
+    client_secret: process.env.CLIENT_SECRET,
+    redirect_uri: process.env.REDIRECT_URI,
+    refresh_token: tokenRecord.refreshToken
   };
-  return await exchangeForTokens(userId, refreshTokenProof);
+
+  try {
+    const tokens = await exchangeForTokens(refreshTokenProof);
+    console.log(`Refreshed access token for portal ${portalId}`);
+    return tokens.accessToken;
+  } catch (error) {
+    console.error('Error refreshing access token:', error.message);
+    throw new Error('Unable to refresh access token');
+  }
 };
 
-exports.getAccessToken = async (userId) => {
-  if (!accessTokenCache.get(userId)) {
-    console.log('Refreshing expired access token');
-    await refreshAccessToken(userId);
+
+
+exports.getAccessToken = async (portalId) => {
+  const tokenRecord = await Token.findOne({ portalId });
+
+  if (!tokenRecord) {
+    throw new Error(`No stored tokens found for portal ${portalId}`);
   }
-  return accessTokenCache.get(userId);
+
+  const now = new Date();
+
+  // If the access token is expired, refresh it
+  if (now >= tokenRecord.expiresAt) {
+    console.log('Access token expired, refreshing...');
+    await refreshAccessToken(portalId);  // Refresh the token
+    return await exports.getAccessToken(portalId);  // Recursively call to get the refreshed token
+  }
+
+  // Return the valid access token
+  return tokenRecord.accessToken;
 };
+
 
 exports.isAuthorized = (userId) => {
   return refreshTokenStore[userId] ? true : false;
