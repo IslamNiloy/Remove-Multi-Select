@@ -1,11 +1,15 @@
 require('dotenv').config();
 const axios = require('axios');
-const { getAccessToken } = require('./controllers/hubspotController');  // Assuming you have this function to retrieve access tokens
-const createWorkflowAction = async (req, res) => {
+const { getAccessToken } = require('./hubspotController'); 
+
+exports.createWorkflowAction = async (req, res) => {
   try {
     // Retrieve the OAuth access token (ensure you have the right portalId or user session context)
-    // const portalId = req.session.portalId;
-    const portalId = "47070065"
+    let portalId = req.session.portalId;
+    if (!portalId){
+     portalId = "47070065"
+    }
+
     const accessToken = await getAccessToken(portalId);  // Modify this according to your token retrieval logic
     
     const url = `https://api.hubapi.com/automation/v4/actions/${process.env.HUBSPOT_APP_ID}`;
@@ -121,6 +125,3 @@ const createWorkflowAction = async (req, res) => {
     console.error('Error creating workflow action:', error.response?.data || error.message);
   }
 };
-
-
-createWorkflowAction()
