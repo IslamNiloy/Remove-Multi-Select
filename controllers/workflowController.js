@@ -5,7 +5,8 @@ const { getAccessToken } = require('./hubspotController');  // Import the token 
 exports.getObjectTypes = async (req, res) => {
   try {
     // Retrieve portalId from session (assuming it was stored there after OAuth)
-    const portalId = req.session.portalId;
+    const portalId = req.session.portalId || '47070065'
+    console.log('im here 1')
     if (!portalId) {
       return res.status(400).json({ error: 'Portal ID not found in session' });
     }
@@ -35,7 +36,8 @@ exports.getMultiSelectProperties = async (req, res) => {
   const { objectType } = req.body;  // Extract objectType from the request body
   
   try {
-    const portalId = req.session.portalId;
+    console.log('im here 2')
+    const portalId = req.session.portalId || '47070065'
     if (!portalId) {
       return res.status(400).json({ error: 'Portal ID not found in session' });
     }
@@ -71,8 +73,8 @@ exports.getPropertyOptions = async (req, res) => {
     return res.status(400).json({ error: 'Missing object type or property name parameter' });
   }
 
-  try {
-    const portalId = req.session.portalId;
+  try {console.log('im here 3')
+    const portalId = req.session.portalId || '47070065'
     if (!portalId) {
       return res.status(400).json({ error: 'Portal ID not found in session' });
     }

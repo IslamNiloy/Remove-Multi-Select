@@ -89,7 +89,11 @@ exports.property_values = async (req, res) => {
 // Remove a value from a multi-select property
 exports.removeMultiselectValue = async (req, res) => {
   try {
-    const accessToken = await getAccessToken(req.sessionID);
+    const portalId = req.session.portalId || '47070065'
+    if (!portalId) {
+      throw new Error('Portal ID not found in session');
+    }
+    const accessToken = await getAccessToken(portalId);
     hubspotClient.setAccessToken(accessToken);
 
     const { propertyValue, removeValue, hs_object_id, propertyName } = req.body;

@@ -163,7 +163,10 @@ const refreshAccessToken = async (portalId) => {
 
 
 exports.getAccessToken = async (portalId) => {
-  const tokenRecord = await Token.findOne({ portalId });
+  console.log('im here',portalId)
+  
+  const tokenRecord =  await Token.find({ portalId });
+  console.log(tokenRecord)
 
   if (!tokenRecord) {
     throw new Error(`No stored tokens found for portal ${portalId}`);

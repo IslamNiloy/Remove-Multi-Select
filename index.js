@@ -11,6 +11,7 @@ const PORT = 3000;
 const userRoutes = require('./routes/userRoutes');
 const hubspotRoutes = require('./routes/hubspotRoutes');
 const workflowRoutes = require('./routes/workflowRoutes');
+const testRoutes = require('./routes/testRoutes');
 
 // Use morgan to log HTTP requests
 app.use(morgan('dev'));  // Log requests to the console in 'dev' format
@@ -44,6 +45,7 @@ mongoose.connect(mongoUri)
 app.use('/', hubspotRoutes);
 app.use('/', userRoutes);
 app.use('/', workflowRoutes);
+app.use('/', testRoutes);
 
 // Start server
 app.listen(PORT, () => console.log(`=== Starting your app on http://localhost:${PORT} ===`));
