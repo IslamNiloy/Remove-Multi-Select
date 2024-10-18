@@ -16,7 +16,7 @@ exports.getContactProperties = async (req, res) => {
   try {
     // Fetch contact properties from HubSpot using v3 properties API with pagination support
     do {
-      const url = `https://api.hubapi.com/crm/v3/properties/contacts?hapikey=${process.env.HUBSPOT_API_KEY}&limit=${limit}&after=${after || ''}`;
+      const url = `https://api.hubapi.com/crm/v3/properties/contacts?hapikey=${process.env.HUBSPOT_HAPI_KEY}&limit=${limit}&after=${after || ''}`;
       const response = await axios.get(url);
       const properties = response.data.results;
 
