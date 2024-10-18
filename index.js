@@ -6,7 +6,7 @@ const MongoStore = require('connect-mongo');
 const mongoose = require('mongoose');
 
 const app = express();
-
+app.use(express.json()); 
 const PORT = 3000;
 const userRoutes = require('./routes/userRoutes');
 const hubspotRoutes = require('./routes/hubspotRoutes');

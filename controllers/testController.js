@@ -1,25 +1,31 @@
 require('dotenv').config();
 const axios = require('axios');
 
+const hubspot = require('@hubspot/api-client');
+
+const hubspotClient = new hubspot.Client({ accessToken: process.env.HUBSPOT_HAPI_KEY });
+
 exports.getContactProperties = async (req, res) => {
-  // Handle CORS headers
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
 
-  // Retrieve the request payload
+  if (!req.body) {
+    return res.status(400).json({ message: 'Request body is missing' });
+  }
+
   const { fetchOptions, inputFieldName, origin, objectTypeId, inputFields } = req.body;
 
   let allProperties = [];
-  let after = fetchOptions?.after || undefined;  // Handle pagination cursor
+  let after = fetchOptions.after || undefined;  // Handle pagination cursor
   const limit = 10;  // Adjust this limit as necessary
 
   try {
-    // Fetch contact properties from HubSpot using v3 properties API with pagination support
     do {
-      const url = `https://api.hubapi.com/crm/v3/properties/contacts?hapikey=${process.env.HUBSPOT_HAPI_KEY}&limit=${limit}&after=${after || ''}`;
-      const response = await axios.get(url);
-      const properties = response.data.results;
-
+      const propertiesResponse = await hubspotClient.crm.properties.coreApi.getAll("contacts",{
+        limit:limit,
+        after: after || undefined
+      })
+      const properties = propertiesResponse.results;
       // Map properties into the expected format for HubSpot dropdown options
       const propertyList = properties.map(property => ({
         label: property.label,  // The label to show in the dropdown
@@ -29,10 +35,10 @@ exports.getContactProperties = async (req, res) => {
 
       // Concatenate properties for the full list
       allProperties = allProperties.concat(propertyList);
-      after = response.data.paging ? response.data.paging.next.after : undefined;
+      after = propertiesResponse.paging ? propertiesResponse.paging.next.after : undefined;
 
       // Handle filtering based on search query
-      if (fetchOptions?.q) {
+      if (fetchOptions.q) {
         const query = fetchOptions.q.toLowerCase();
         allProperties = allProperties.filter(property =>
           property.label.toLowerCase().includes(query)
