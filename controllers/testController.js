@@ -11,7 +11,7 @@ exports.getContactProperties = async (req, res) => {
 
   let allProperties = [];
   let after = fetchOptions?.after || undefined;  // Handle pagination cursor
-  const limit = 100;  // Adjust this limit as necessary
+  const limit = 10;  // Adjust this limit as necessary
 
   try {
     // Fetch contact properties from HubSpot using v3 properties API with pagination support
