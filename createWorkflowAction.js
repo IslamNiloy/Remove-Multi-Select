@@ -117,38 +117,34 @@
 
 // createWorkflowAction()
 
-
 require('dotenv').config();
 const axios = require('axios');
 
-const createWorkflowAction = async (req, res) => {
+const createWorkflowAction = async (req, res = null) => {
   try {
+    // HubSpot API URL for registering the workflow action
     const url = `https://api.hubapi.com/automation/v4/actions/${process.env.HUBSPOT_APP_ID}?hapikey=${process.env.HUBSPOT_API_KEY}`;
 
     const workflowAction = {
-      actionUrl: `${process.env.WEB_URL}/set-property-value`,  // The URL that will handle setting the property value
-      objectTypes: ["CONTACT"],  // You can include other objects like "DEAL", "COMPANY", etc.
+      actionUrl: `${process.env.WEB_URL}/set-property-value`,  // Backend that will handle property setting
+      objectTypes: ["CONTACT"],  // Workflow action applies to contacts
       published: true,
       inputFields: [
         {
           typeDefinition: {
-            name: "property",  // The selected property
-            type: "string",
-            fieldType: "select"
+            name: "property",
+            type: "enumeration",  // Dropdown field (enum) to select a property
+            fieldType: "select",  // Select input field
+            optionsUrl: `${process.env.WEB_URL}/get-contact-property`,  // Endpoint to dynamically fetch options
           },
           supportedValueTypes: ["STATIC_VALUE"],
-          isRequired: true,
-          dynamicOptionsUrl: {
-            url: `${process.env.WEB_URL}/get-contact-property`,  // URL to get contact properties dynamically
-            method: "POST",
-            requestBodyTemplate: "{}"  // Body template to send if needed
-          }
+          isRequired: true
         },
         {
           typeDefinition: {
-            name: "propertyValue",  // The new value for the selected property
+            name: "propertyValue",
             type: "string",
-            fieldType: "text"
+            fieldType: "text"  // Text field for entering the value to set for the selected property
           },
           supportedValueTypes: ["STATIC_VALUE"],
           isRequired: true
@@ -165,18 +161,18 @@ const createWorkflowAction = async (req, res) => {
         }
       ],
       objectRequestOptions: {
-        properties: ["hs_object_id"]  // Retrieve the internal ID of the object
+        properties: ["hs_object_id"]  // Fetch hs_object_id to identify the contact
       },
       labels: {
         en: {
           actionName: "Set Property Value",
-          actionDescription: "Set a value for a selected property",
+          actionDescription: "Set a value for a selected property on a contact",
           inputFieldLabels: {
-            property: "Property to Set",
+            property: "Select Property",
             propertyValue: "New Value"
           },
           outputFieldLabels: {
-            output: "Updated Property"
+            output: "Updated Property Value"
           }
         }
       },
@@ -186,11 +182,11 @@ const createWorkflowAction = async (req, res) => {
           functionSource: `exports.main = function(event, callback) {
             const { property, propertyValue } = event.inputFields;
 
-            const webhookUrl = "${process.env.WEB_URL}/set-property-value";  // The backend that will handle updating the property value
+            const webhookUrl = "${process.env.WEB_URL}/set-property-value"; 
             const body = {
               property: property,
               propertyValue: propertyValue,
-              hs_object_id: event.object.properties.hs_object_id  // Send the internal object ID
+              hs_object_id: event.object.properties.hs_object_id  // Pass the object ID for updating
             };
 
             return callback({
@@ -207,11 +203,24 @@ const createWorkflowAction = async (req, res) => {
 
     // Register the workflow action with HubSpot
     const response = await axios.post(url, workflowAction);
+
     console.log('Workflow action registered successfully:', response.data);
-    res.status(200).json(response.data);
+
+    // Return the workflow action details
+    if (res) {
+      res.status(200).json(response.data);
+    }
+    
   } catch (error) {
     console.error('Error creating workflow action:', error.response?.data || error.message);
-    res.status(500).json({ message: 'Error creating workflow action', error });
+
+    // Return the error response
+    if (res) {
+      res.status(500).json({
+        message: 'Error creating workflow action',
+        error: error.response?.data || error.message,
+      });
+    }
   }
 };
 
