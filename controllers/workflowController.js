@@ -160,8 +160,9 @@ exports.getAllObjects = async (req, res) => {
 
 
 // Fetch properties for a given object type
+// Modified getProperties function
 exports.getProperties = async (req, res) => {
-  const { objectType } = req.body; // Extract objectType from the request body
+  const { objectType, filterType } = req.body; // Extract objectType and filterType from the request body
 
   if (!objectType) {
     return res.status(400).json({ error: 'Missing object type parameter' });
@@ -184,25 +185,27 @@ exports.getProperties = async (req, res) => {
       },
     });
 
-    // Format the properties into an array with label, value, and type
-    const properties = response.data.results.map((property) => ({
+    // Filter properties based on filterType if provided
+    let properties = response.data.results;
+    if (filterType) {
+      properties = properties.filter((property) => property.type === filterType);
+    }
+
+    // Format the properties into an array with label and value
+    const formattedProperties = properties.map((property) => ({
       label: property.label,
       value: property.name,
-      type: property.type // Include the type of the property
     }));
 
-    // Return the formatted properties as options in a JSON response
-    const responsePayload = {
-      options: properties
-    };
-
-    console.log(`Properties for ${objectType}:`, responsePayload);
-    res.status(200).json(responsePayload);
+    // Return the formatted properties as a JSON response
+    console.log(`Properties for ${objectType} with filter ${filterType}:`, formattedProperties);
+    res.status(200).json({ options: formattedProperties });
   } catch (error) {
     console.error(`Error fetching properties for ${objectType}:`, error.message);
     res.status(500).json({ error: 'Error fetching properties.' });
   }
 };
+
 
 
 
