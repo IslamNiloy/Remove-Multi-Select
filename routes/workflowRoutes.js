@@ -10,7 +10,7 @@ router.post('/get-multiselect-properties', getMultiSelectProperties);
 router.post('/get-property-options', getPropertyOptions);
 
 // New routes for fetching all objects and properties of a selected object
-router.get('/get-all-objects', getAllObjects); // Use GET to fetch all object types
+router.post('/get-all-objects', getAllObjects); // Use GET to fetch all object types
 router.post('/get-properties', getProperties); // Use POST to fetch properties for a given object type
 
 // Route for creating a workflow action
