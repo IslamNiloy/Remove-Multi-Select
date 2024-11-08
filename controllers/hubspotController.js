@@ -163,26 +163,25 @@ const refreshAccessToken = async (portalId) => {
 
 
 exports.getAccessToken = async (portalId) => {
-  console.log('im here',portalId)
+  // console.log('im here',portalId)
   
   const tokenRecord =  await Token.find({ portalId });
-  console.log(tokenRecord)
+  // console.log(tokenRecord)
 
   if (!tokenRecord) {
     throw new Error(`No stored tokens found for portal ${portalId}`);
   }
 
   const now = new Date();
-
+  console.log(now)
   // If the access token is expired, refresh it
-  if (now >= tokenRecord.expiresAt) {
+  if (now >= tokenRecord[0].expiresAt) {
     console.log('Access token expired, refreshing...');
     await refreshAccessToken(portalId);  // Refresh the token
     return await exports.getAccessToken(portalId);  // Recursively call to get the refreshed token
   }
-
   // Return the valid access token
-  return tokenRecord.accessToken;
+  return tokenRecord[0].accessToken;
 };
 
 
