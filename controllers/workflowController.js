@@ -131,7 +131,7 @@ exports.getAllObjects = async (req, res) => {
       { label: 'Contacts', value: 'contacts' },
       { label: 'Companies', value: 'companies' },
       { label: 'Deals', value: 'deals' },
-      { label: 'Tickets', value: 'tickets' }, // Include more standard objects if needed
+      { label: 'Tickets', value: 'tickets' } // Include more standard objects if needed
     ];
 
     // Map custom objects from the API response
@@ -143,14 +143,20 @@ exports.getAllObjects = async (req, res) => {
     // Combine standard and custom objects
     const allObjects = [...standardObjects, ...customObjects];
 
-    // Return all objects as a JSON response
-    console.log('All Objects:', allObjects);
-    res.status(200).json(allObjects);
+    // Format the response to include an "options" property
+    const response = {
+      options: allObjects
+    };
+
+    // Return the response as a JSON object
+    console.log('All Objects:', response);
+    res.status(200).json(response);
   } catch (error) {
     console.error('Error fetching objects:', error.message);
     res.status(500).json({ error: 'Error fetching objects.' });
   }
 };
+
 
 
 // Fetch properties for a given object type
@@ -185,12 +191,51 @@ exports.getProperties = async (req, res) => {
       type: property.type // Include the type of the property
     }));
 
-    // Return the formatted properties as a JSON response
-    console.log(`Properties for ${objectType}:`, properties);
-    res.status(200).json(properties);
+    // Return the formatted properties as options in a JSON response
+    const responsePayload = {
+      options: properties
+    };
+
+    console.log(`Properties for ${objectType}:`, responsePayload);
+    res.status(200).json(responsePayload);
   } catch (error) {
     console.error(`Error fetching properties for ${objectType}:`, error.message);
     res.status(500).json({ error: 'Error fetching properties.' });
+  }
+};
+
+
+
+// Controller function to handle /filters endpoint
+exports.getFilters = async (req, res) => {
+  try {
+    // Define filter options based on HubSpot property field types
+    const filters = [
+      { label: 'Single-line text', value: 'single_line_text' },
+      { label: 'Multi-line text', value: 'multi_line_text' },
+      { label: 'Single checkbox', value: 'single_checkbox' },
+      { label: 'Multiple checkboxes', value: 'multiple_checkboxes' },
+      { label: 'Dropdown select', value: 'dropdown_select' },
+      { label: 'Radio select', value: 'radio_select' },
+      { label: 'Date picker', value: 'date_picker' },
+      { label: 'Number', value: 'number' },
+      { label: 'File', value: 'file' },
+      { label: 'HubSpot user', value: 'hubspot_user' },
+      { label: 'Calculation', value: 'calculation' },
+      { label: 'Score', value: 'score' },
+      { label: 'Rich text', value: 'rich_text' }
+    ];
+
+    // Format the response with an "options" property
+    const response = {
+      options: filters
+    };
+
+    // Send the response
+    res.status(200).json(response);
+  } catch (error) {
+    console.error('Error fetching filters:', error.message);
+    res.status(500).json({ error: 'Error fetching filters.' });
   }
 };
 
