@@ -3,116 +3,116 @@ const { getAccessToken } = require('./hubspotController');  // Import the token 
 const axios = require('axios');
 
 // Fetch object types (Contacts, Deals, Companies)
-exports.getObjectTypes = async (req, res) => {
-  try {
-    // Retrieve portalId from session (assuming it was stored there after OAuth)
-    const portalId = req.session.portalId 
-    // || '47070065'
-    console.log('im here 1')
-    if (!portalId) {
-      return res.status(400).json({ error: 'Portal ID not found in session' });
-    }
+// exports.getObjectTypes = async (req, res) => {
+//   try {
+//     // Retrieve portalId from session (assuming it was stored there after OAuth)
+//     const portalId = req.session.portalId 
+//     // || '47070065'
+//     console.log('im here 1')
+//     if (!portalId) {
+//       return res.status(400).json({ error: 'Portal ID not found in session' });
+//     }
 
-    // Retrieve the OAuth token for the portalId
-    const accessToken = await getAccessToken(portalId);
-    const hubspotClient = new hubspot.Client();
-    hubspotClient.setAccessToken(accessToken);
+//     // Retrieve the OAuth token for the portalId
+//     const accessToken = await getAccessToken(portalId);
+//     const hubspotClient = new hubspot.Client();
+//     hubspotClient.setAccessToken(accessToken);
 
-    // Available object types in HubSpot
-    const availableObjects = ["contacts", "deals", "companies"];
+//     // Available object types in HubSpot
+//     const availableObjects = ["contacts", "deals", "companies"];
 
-    const dropdownOptions = availableObjects.map(objectType => ({
-      label: objectType.charAt(0).toUpperCase() + objectType.slice(1),
-      value: objectType
-    }));
+//     const dropdownOptions = availableObjects.map(objectType => ({
+//       label: objectType.charAt(0).toUpperCase() + objectType.slice(1),
+//       value: objectType
+//     }));
 
-    res.status(200).json(dropdownOptions);
-  } catch (error) {
-    console.error('Error fetching object types:', error.message);
-    res.status(500).json({ error: 'Error fetching object types.' });
-  }
-};
+//     res.status(200).json(dropdownOptions);
+//   } catch (error) {
+//     console.error('Error fetching object types:', error.message);
+//     res.status(500).json({ error: 'Error fetching object types.' });
+//   }
+// };
 
 // Fetch multi-select properties for a given object type
-exports.getMultiSelectProperties = async (req, res) => {
-  const { objectType } = req.body;  // Extract objectType from the request body
+// exports.getMultiSelectProperties = async (req, res) => {
+//   const { objectType } = req.body;  // Extract objectType from the request body
   
-  try {
-    console.log('im here 2')
-    const portalId = req.session.portalId 
-    // || '47070065'
-    if (!portalId) {
-      return res.status(400).json({ error: 'Portal ID not found in session' });
-    }
+//   try {
+//     console.log('im here 2')
+//     const portalId = req.session.portalId 
+//     // || '47070065'
+//     if (!portalId) {
+//       return res.status(400).json({ error: 'Portal ID not found in session' });
+//     }
 
-    // Retrieve the OAuth token for the portalId
-    const accessToken = await getAccessToken(portalId);
-    const hubspotClient = new hubspot.Client();
-    hubspotClient.setAccessToken(accessToken);
+//     // Retrieve the OAuth token for the portalId
+//     const accessToken = await getAccessToken(portalId);
+//     const hubspotClient = new hubspot.Client();
+//     hubspotClient.setAccessToken(accessToken);
 
-    // Fetch the multi-select properties for the given object type
-    const propertiesResponse = await hubspotClient.crm.properties.coreApi.getAll(objectType);
-    const multiSelectProperties = propertiesResponse.results.filter(property =>
-      property.fieldType === 'checkbox' || property.fieldType === 'select'
-    );
+//     // Fetch the multi-select properties for the given object type
+//     const propertiesResponse = await hubspotClient.crm.properties.coreApi.getAll(objectType);
+//     const multiSelectProperties = propertiesResponse.results.filter(property =>
+//       property.fieldType === 'checkbox' || property.fieldType === 'select'
+//     );
 
-    const dropdownOptions = multiSelectProperties.map(property => ({
-      label: property.label,
-      value: property.name
-    }));
+//     const dropdownOptions = multiSelectProperties.map(property => ({
+//       label: property.label,
+//       value: property.name
+//     }));
 
-    res.status(200).json(dropdownOptions);
-  } catch (error) {
-    console.error('Error fetching multi-select properties:', error.message);
-    res.status(500).json({ error: 'Error fetching multi-select properties.' });
-  }
-};
+//     res.status(200).json(dropdownOptions);
+//   } catch (error) {
+//     console.error('Error fetching multi-select properties:', error.message);
+//     res.status(500).json({ error: 'Error fetching multi-select properties.' });
+//   }
+// };
 
 // Fetch options for a selected multi-select property
-exports.getPropertyOptions = async (req, res) => {
-  const { objectType, propertyName } = req.query;  // Extract objectType and propertyName from query parameters
+// exports.getPropertyOptions = async (req, res) => {
+//   const { objectType, propertyName } = req.query;  // Extract objectType and propertyName from query parameters
 
-  if (!objectType || !propertyName) {
-    return res.status(400).json({ error: 'Missing object type or property name parameter' });
-  }
+//   if (!objectType || !propertyName) {
+//     return res.status(400).json({ error: 'Missing object type or property name parameter' });
+//   }
 
-  try {console.log('im here 3')
-    const portalId = req.session.portalId 
-    // || '47070065'
-    if (!portalId) {
-      return res.status(400).json({ error: 'Portal ID not found in session' });
-    }
+//   try {console.log('im here 3')
+//     const portalId = req.session.portalId 
+//     // || '47070065'
+//     if (!portalId) {
+//       return res.status(400).json({ error: 'Portal ID not found in session' });
+//     }
 
-    // Retrieve the OAuth token for the portalId
-    const accessToken = await getAccessToken(portalId);
-    const hubspotClient = new hubspot.Client();
-    hubspotClient.setAccessToken(accessToken);
+//     // Retrieve the OAuth token for the portalId
+//     const accessToken = await getAccessToken(portalId);
+//     const hubspotClient = new hubspot.Client();
+//     hubspotClient.setAccessToken(accessToken);
 
-    // Fetch the specific property definition to get its options
-    const propertyResponse = await hubspotClient.crm.properties.coreApi.getByName(objectType, propertyName);
-    const propertyOptions = propertyResponse.options;
+//     // Fetch the specific property definition to get its options
+//     const propertyResponse = await hubspotClient.crm.properties.coreApi.getByName(objectType, propertyName);
+//     const propertyOptions = propertyResponse.options;
 
-    if (!propertyOptions || propertyOptions.length === 0) {
-      return res.status(404).json({ error: 'No options available for the selected property' });
-    }
+//     if (!propertyOptions || propertyOptions.length === 0) {
+//       return res.status(404).json({ error: 'No options available for the selected property' });
+//     }
 
-    // Return the property options for checkboxes and select fields
-    res.status(200).json({
-      options: propertyOptions.map(option => ({
-        label: option.label,
-        value: option.value
-      }))
-    });
-  } catch (error) {
-    console.error('Error fetching property options:', error.message);
-    res.status(500).json({ error: 'Error fetching property options.' });
-  }
-};
+//     // Return the property options for checkboxes and select fields
+//     res.status(200).json({
+//       options: propertyOptions.map(option => ({
+//         label: option.label,
+//         value: option.value
+//       }))
+//     });
+//   } catch (error) {
+//     console.error('Error fetching property options:', error.message);
+//     res.status(500).json({ error: 'Error fetching property options.' });
+//   }
+// };
 
 
 exports.getAllObjects = async (req, res) => {
   try {
-    const portalId = req.session.portalId || '47070065'; // Retrieve portalId from session
+    const {portalId } = req.body; // Retrieve portalId from session
     if (!portalId) {
       return res.status(400).json({ error: 'Portal ID not found in session' });
     }
@@ -164,12 +164,61 @@ exports.getAllObjects = async (req, res) => {
 
 // Fetch properties for a given object type
 // Modified getProperties function
-exports.getProperties = async (req, res) => {
+// exports.getProperties = async (req, res) => {
+//   try {
+//     // Extract objectType and filterType from inputFields
+//     const { inputFields, portalId } = req.body; // Extract portalId from the request body
+//     const objectType = inputFields.objectTypeSelect?.value;
+//     const filterType = inputFields.filterTypeSelect?.value;
+
+//     // Check if objectType is provided
+//     if (!objectType) {
+//       return res.status(400).json({ error: 'Missing object type parameter' });
+//     }
+
+//     // Check if portalId is provided
+//     if (!portalId) {
+//       return res.status(400).json({ error: 'Portal ID not provided in the request' });
+//     }
+
+//     // Retrieve the OAuth token for the portalId
+//     const accessToken = await getAccessToken(portalId);
+
+//     // Make the API request to fetch properties for the given object type
+//     const response = await axios.get(`https://api.hubapi.com/crm/v3/properties/${objectType}`, {
+//       headers: {
+//         Authorization: `Bearer ${accessToken}`,
+//         'Content-Type': 'application/json',
+//       },
+//     });
+
+//     // Filter properties based on fieldType if provided
+//     let properties = response.data.results;
+//     if (filterType) {
+//       properties = properties.filter((property) => property.fieldType === filterType);
+//     }
+
+//     // Format the properties into an array with label and value
+//     const formattedProperties = properties.map((property) => ({
+//       label: property.label,
+//       value: property.name,
+//     }));
+
+//     res.status(200).json({ options: formattedProperties });
+//   } catch (error) {
+//     console.error('Error fetching properties:', error.message);
+//     res.status(500).json({ error: 'Error fetching properties.' });
+//   }
+// };
+
+
+exports.getMultiSelectProperties = async (req, res) => {
   try {
+    console.log(req.body)
     // Extract objectType and filterType from inputFields
     const { inputFields, portalId } = req.body; // Extract portalId from the request body
     const objectType = inputFields.objectTypeSelect?.value;
-    const filterType = inputFields.filterTypeSelect?.value;
+    // const filterType = inputFields.filterTypeSelect?.value;
 
     // Check if objectType is provided
     if (!objectType) {
@@ -195,7 +244,8 @@ exports.getProperties = async (req, res) => {
     // Filter properties based on fieldType if provided
     let properties = response.data.results;
     if (filterType) {
-      properties = properties.filter((property) => property.fieldType === filterType);
+      properties = properties.filter((property) => 
+        property.fieldType === 'checkbox' || property.fieldType === 'select');
     }
 
     // Format the properties into an array with label and value
@@ -212,6 +262,48 @@ exports.getProperties = async (req, res) => {
 };
 
 
+
+exports.getPropertyOptions = async (req, res) => {
+  try {
+    // Extract portalId and inputFields from the request body
+    console.log(req.body)
+    const { inputFields, portalId } = req.body;
+    const objectType = inputFields.objectTypeSelect?.value;
+    const propertyName = inputFields.multiSelectProperty?.value;
+
+    // Check if portalId and objectType are provided
+    if (!portalId) {
+      return res.status(400).json({ error: 'Portal ID not provided in the request' });
+    }
+    if (!objectType || !propertyName) {
+      return res.status(400).json({ error: 'Object type or property name is missing' });
+    }
+
+    // Retrieve the OAuth token for the portalId
+    const accessToken = await getAccessToken(portalId);
+    const hubspotClient = new hubspot.Client();
+    hubspotClient.setAccessToken(accessToken);
+
+    // Fetch the specific property details
+    const propertyResponse = await hubspotClient.crm.properties.coreApi.getByName(objectType, propertyName);
+    const property = propertyResponse.body;
+
+    if (!property || !property.options) {
+      return res.status(404).json({ error: 'Property options not found' });
+    }
+
+    // Format the options into an array with label and value
+    const options = property.options.map(option => ({
+      label: option.label,
+      value: option.value
+    }));
+
+    res.status(200).json({ options });
+  } catch (error) {
+    console.error('Error fetching property options:', error.message);
+    res.status(500).json({ error: 'Error fetching property options.' });
+  }
+};
 
 
 
