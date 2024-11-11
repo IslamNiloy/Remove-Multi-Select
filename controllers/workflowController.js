@@ -343,16 +343,86 @@ exports.getPropertyOptions = async (req, res) => {
 };
 
 
+// exports.removePropertyOption = async (req, res) => {
+//   try {
+//     console.log("req body for remove", req.body);
+
+//     // Correctly extract necessary fields from the request body
+//     const portalId = req.body.origin.portalId;
+//     const { inputFields } = req.body;
+//     const objectType = inputFields.objectTypeSelect;
+//     const propertyName = inputFields.multiSelectProperty;
+//     const optionValue = inputFields.optionToRemove;
+
+//     // Validate input
+//     if (!portalId) {
+//       return res.json({
+//         outputFields: { message: 'Portal ID not provided in the request' }
+//       });
+//     }
+//     if (!objectType || !propertyName || !optionValue) {
+//       return res.json({
+//         outputFields: { message: 'Missing required parameters' }
+//       });
+//     }
+
+//     // Retrieve the OAuth token for the portalId
+//     const accessToken = await getAccessToken(portalId);
+//     if (!accessToken) {
+//       return res.json({
+//         outputFields: { message: 'Failed to retrieve access token' }
+//       });
+//     }
+
+//     // Initialize HubSpot client with the access token
+//     const hubspotClient = new hubspot.Client();
+//     hubspotClient.setAccessToken(accessToken);
+
+//     // Fetch the existing property details from HubSpot
+//     const propertyResponse = await hubspotClient.crm.properties.coreApi.getByName(objectType, propertyName);
+//     const property = propertyResponse;
+
+//     // Ensure the property and its options exist
+//     if (!property || !property.options || !Array.isArray(property.options)) {
+//       return res.json({
+//         outputFields: { message: 'Property or options not found' }
+//       });
+//     }
+
+//     // Filter out the option to be removed
+//     const updatedOptions = property.options.filter(option => option.value !== optionValue);
+
+//     // Check if the option was found and removed
+//     if (updatedOptions.length === property.options.length) {
+//       return res.json({
+//         outputFields: { message: 'Option to remove not found' }
+//       });
+//     }
+
+//     // Update the property with the remaining options
+//     await hubspotClient.crm.properties.coreApi.update(objectType, propertyName, { options: updatedOptions });
+
+//     // Respond with a success message
+//     res.json({ outputFields: { message: 'Option removed successfully' } });
+//   } catch (error) {
+//     console.error('Error removing property option:', error.message);
+//     res.json({
+//       outputFields: { message: 'Error removing property option: ' + error.message }
+//     });
+//   }
+// };
+
 exports.removePropertyOption = async (req, res) => {
   try {
     console.log("req body for remove", req.body);
 
-    // Correctly extract necessary fields from the request body
+    // Extract necessary fields from the request body
     const portalId = req.body.origin.portalId;
+    const { objectId, objectType } = req.body.object;
     const { inputFields } = req.body;
-    const objectType = inputFields.objectTypeSelect;
+    const objectTypeSelect = inputFields.objectTypeSelect; // This should match the objectType
     const propertyName = inputFields.multiSelectProperty;
-    const optionValue = inputFields.optionToRemove;
+    const optionValueToRemove = inputFields.optionToRemove;
 
     // Validate input
     if (!portalId) {
@@ -360,7 +430,7 @@ exports.removePropertyOption = async (req, res) => {
         outputFields: { message: 'Portal ID not provided in the request' }
       });
     }
-    if (!objectType || !propertyName || !optionValue) {
+    if (!objectId || !objectType || !propertyName || !optionValueToRemove) {
       return res.json({
         outputFields: { message: 'Missing required parameters' }
       });
@@ -378,40 +448,41 @@ exports.removePropertyOption = async (req, res) => {
     const hubspotClient = new hubspot.Client();
     hubspotClient.setAccessToken(accessToken);
 
-    // Fetch the existing property details from HubSpot
-    const propertyResponse = await hubspotClient.crm.properties.coreApi.getByName(objectType, propertyName);
-    const property = propertyResponse;
+    // Fetch the current property value for the specific object (e.g., a contact)
+    const objectResponse = await hubspotClient.crm[objectType].basicApi.getById(objectId, [propertyName]);
+    const currentPropertyValue = objectResponse?.properties?.[propertyName];
 
-    // Ensure the property and its options exist
-    if (!property || !property.options || !Array.isArray(property.options)) {
+    if (!currentPropertyValue) {
       return res.json({
-        outputFields: { message: 'Property or options not found' }
+        outputFields: { message: `Property ${propertyName} not found on the object` }
       });
     }
 
-    // Filter out the option to be removed
-    const updatedOptions = property.options.filter(option => option.value !== optionValue);
+    // Split the current multi-select values into an array
+    const valuesArray = currentPropertyValue.split(';');
 
-    // Check if the option was found and removed
-    if (updatedOptions.length === property.options.length) {
-      return res.json({
-        outputFields: { message: 'Option to remove not found' }
-      });
-    }
+    // Remove the specified option value
+    const updatedValuesArray = valuesArray.filter(value => value !== optionValueToRemove);
 
-    // Update the property with the remaining options
-    await hubspotClient.crm.properties.coreApi.update(objectType, propertyName, { options: updatedOptions });
+    // Join the values back into a string
+    const updatedPropertyValue = updatedValuesArray.join(';');
+
+    // Update the object with the new property value
+    const updateResponse = await hubspotClient.crm[objectType].basicApi.update(objectId, {
+      properties: {
+        [propertyName]: updatedPropertyValue
+      }
+    });
 
     // Respond with a success message
-    res.json({ outputFields: { message: 'Option removed successfully' } });
+    res.json({ outputFields: { message: 'Option value removed successfully' } });
   } catch (error) {
-    console.error('Error removing property option:', error.message);
+    console.error('Error removing option value:', error.message);
     res.json({
-      outputFields: { message: 'Error removing property option: ' + error.message }
+      outputFields: { message: 'Error removing option value: ' + error.message }
     });
   }
 };
-
 
 
 
