@@ -6,7 +6,8 @@ const axios = require('axios');
 exports.getObjectTypes = async (req, res) => {
   try {
     // Retrieve portalId from session (assuming it was stored there after OAuth)
-    const portalId = req.session.portalId || '47070065'
+    const portalId = req.session.portalId 
+    // || '47070065'
     console.log('im here 1')
     if (!portalId) {
       return res.status(400).json({ error: 'Portal ID not found in session' });
@@ -38,7 +39,8 @@ exports.getMultiSelectProperties = async (req, res) => {
   
   try {
     console.log('im here 2')
-    const portalId = req.session.portalId || '47070065'
+    const portalId = req.session.portalId 
+    // || '47070065'
     if (!portalId) {
       return res.status(400).json({ error: 'Portal ID not found in session' });
     }
@@ -75,7 +77,8 @@ exports.getPropertyOptions = async (req, res) => {
   }
 
   try {console.log('im here 3')
-    const portalId = req.session.portalId || '47070065'
+    const portalId = req.session.portalId 
+    // || '47070065'
     if (!portalId) {
       return res.status(400).json({ error: 'Portal ID not found in session' });
     }
@@ -109,7 +112,8 @@ exports.getPropertyOptions = async (req, res) => {
 
 exports.getAllObjects = async (req, res) => {
   try {
-    const portalId = req.session.portalId || '47070065'; // Retrieve portalId from session
+    const portalId = req.session.portalId 
+    // || '47070065'; // Retrieve portalId from session
     if (!portalId) {
       return res.status(400).json({ error: 'Portal ID not found in session' });
     }
@@ -169,7 +173,8 @@ exports.getProperties = async (req, res) => {
   }
 
   try {
-    const portalId = req.session.portalId || '47070065'; // Retrieve portalId from session
+    const portalId = req.session.portalId 
+    // || '47070065'; // Retrieve portalId from session
     if (!portalId) {
       return res.status(400).json({ error: 'Portal ID not found in session' });
     }
@@ -185,10 +190,10 @@ exports.getProperties = async (req, res) => {
       },
     });
 
-    // Filter properties based on filterType if provided
+    // Filter properties based on fieldType if provided
     let properties = response.data.results;
     if (filterType) {
-      properties = properties.filter((property) => property.type === filterType);
+      properties = properties.filter((property) => property.fieldType === filterType);
     }
 
     // Format the properties into an array with label and value
@@ -198,7 +203,6 @@ exports.getProperties = async (req, res) => {
     }));
 
     // Return the formatted properties as a JSON response
-    console.log(`Properties for ${objectType} with filter ${filterType}:`, formattedProperties);
     res.status(200).json({ options: formattedProperties });
   } catch (error) {
     console.error(`Error fetching properties for ${objectType}:`, error.message);
@@ -209,21 +213,22 @@ exports.getProperties = async (req, res) => {
 
 
 
+
 // Controller function to handle /filters endpoint
 exports.getFilters = async (req, res) => {
   try {
     // Define filter options based on HubSpot property field types
     const filters = [
-      { label: 'Single-line text', value: 'single_line_text' },
-      { label: 'Multi-line text', value: 'multi_line_text' },
-      { label: 'Single checkbox', value: 'single_checkbox' },
-      { label: 'Multiple checkboxes', value: 'multiple_checkboxes' },
-      { label: 'Dropdown select', value: 'dropdown_select' },
-      { label: 'Radio select', value: 'radio_select' },
-      { label: 'Date picker', value: 'date_picker' },
+      { label: 'Single-line text', value: 'text' },
+      { label: 'Multi-line text', value: 'textarea' },
+      { label: 'Single checkbox', value: 'booleancheckbox' },
+      { label: 'Multiple checkboxes', value: 'checkbox' },
+      { label: 'Dropdown select', value: 'select' },
+      { label: 'Radio select', value: 'radiogroup' },
+      { label: 'Date picker', value: 'date' },
       { label: 'Number', value: 'number' },
       { label: 'File', value: 'file' },
-      { label: 'HubSpot user', value: 'hubspot_user' },
+      { label: 'HubSpot user', value: 'owner' },
       { label: 'Calculation', value: 'calculation' },
       { label: 'Score', value: 'score' },
       { label: 'Rich text', value: 'rich_text' }
@@ -241,4 +246,5 @@ exports.getFilters = async (req, res) => {
     res.status(500).json({ error: 'Error fetching filters.' });
   }
 };
+
 
