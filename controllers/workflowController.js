@@ -262,13 +262,13 @@ exports.getMultiSelectProperties = async (req, res) => {
 
 exports.getPropertyOptions = async (req, res) => {
   try {
+    console.log('here...............',req.body)
     // Extract portalId and inputFields from the request body
-    console.log(req.body)
     const { inputFields, portalId } = req.body;
     const objectType = inputFields.objectTypeSelect?.value;
     const propertyName = inputFields.multiSelectProperty?.value;
 
-    // Check if portalId and objectType are provided
+    // Validate portalId, objectType, and propertyName
     if (!portalId) {
       return res.status(400).json({ error: 'Portal ID not provided in the request' });
     }
@@ -281,11 +281,12 @@ exports.getPropertyOptions = async (req, res) => {
     const hubspotClient = new hubspot.Client();
     hubspotClient.setAccessToken(accessToken);
 
-    // Fetch the specific property details
+    // Fetch the specific property details from HubSpot
     const propertyResponse = await hubspotClient.crm.properties.coreApi.getByName(objectType, propertyName);
-    const property = propertyResponse.body;
 
-    if (!property || !property.options) {
+    // Check if the property and its options exist
+    const property = propertyResponse.body;
+    if (!property || !property.options || property.options.length === 0) {
       return res.status(404).json({ error: 'Property options not found' });
     }
 
