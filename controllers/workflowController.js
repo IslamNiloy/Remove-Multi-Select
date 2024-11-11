@@ -420,7 +420,6 @@ exports.removePropertyOption = async (req, res) => {
     const portalId = req.body.origin.portalId;
     const { objectId, objectType } = req.body.object;
     const { inputFields } = req.body;
-    const objectTypeSelect = inputFields.objectTypeSelect; // This should match the objectType
     const propertyName = inputFields.multiSelectProperty;
     const optionValueToRemove = inputFields.optionToRemove;
 
@@ -445,12 +444,25 @@ exports.removePropertyOption = async (req, res) => {
     }
 
     // Initialize HubSpot client with the access token
-    const hubspotClient = new hubspot.Client();
-    hubspotClient.setAccessToken(accessToken);
+    const hubspotClient = new hubspot.Client({ accessToken });
 
-    // Fetch the current property value for the specific object (e.g., a contact)
-    const objectResponse = await hubspotClient.crm[objectType].basicApi.getById(objectId, [propertyName]);
-    const currentPropertyValue = objectResponse?.properties?.[propertyName];
+    // Use the appropriate HubSpot API client based on the object type
+    let objectApi;
+    if (objectType === 'contacts') {
+      objectApi = hubspotClient.crm.contacts.basicApi;
+    } else if (objectType === 'deals') {
+      objectApi = hubspotClient.crm.deals.basicApi;
+    } else if (objectType === 'companies') {
+      objectApi = hubspotClient.crm.companies.basicApi;
+    } else {
+      return res.json({
+        outputFields: { message: `Unsupported object type: ${objectType}` }
+      });
+    }
+
+    // Fetch the current property value for the specific object
+    const objectResponse = await objectApi.getById(objectId, [propertyName]);
+    const currentPropertyValue = objectResponse.body.properties[propertyName];
 
     if (!currentPropertyValue) {
       return res.json({
@@ -459,20 +471,21 @@ exports.removePropertyOption = async (req, res) => {
     }
 
     // Split the current multi-select values into an array
-    const valuesArray = currentPropertyValue.split(';');
+    let valuesArray = currentPropertyValue.split(';');
 
     // Remove the specified option value
-    const updatedValuesArray = valuesArray.filter(value => value !== optionValueToRemove);
+    valuesArray = valuesArray.filter(value => value.trim() !== optionValueToRemove.trim());
 
     // Join the values back into a string
-    const updatedPropertyValue = updatedValuesArray.join(';');
+    const updatedPropertyValue = valuesArray.join(';');
+
+    // Prepare the properties to update
+    const properties = {
+      [propertyName]: updatedPropertyValue
+    };
 
     // Update the object with the new property value
-    const updateResponse = await hubspotClient.crm[objectType].basicApi.update(objectId, {
-      properties: {
-        [propertyName]: updatedPropertyValue
-      }
-    });
+    await objectApi.update(objectId, { properties });
 
     // Respond with a success message
     res.json({ outputFields: { message: 'Option value removed successfully' } });
