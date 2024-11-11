@@ -112,8 +112,7 @@ exports.getPropertyOptions = async (req, res) => {
 
 exports.getAllObjects = async (req, res) => {
   try {
-    const portalId = req.session.portalId 
-    // || '47070065'; // Retrieve portalId from session
+    const portalId = req.session.portalId || '47070065'; // Retrieve portalId from session
     if (!portalId) {
       return res.status(400).json({ error: 'Portal ID not found in session' });
     }
@@ -173,8 +172,7 @@ exports.getProperties = async (req, res) => {
   }
 
   try {
-    const portalId = req.session.portalId 
-    // || '47070065'; // Retrieve portalId from session
+    const portalId = req.session.portalId  || '47070065'; // Retrieve portalId from session
     if (!portalId) {
       return res.status(400).json({ error: 'Portal ID not found in session' });
     }
