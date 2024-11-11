@@ -422,7 +422,7 @@ exports.removePropertyOption = async (req, res) => {
     const { inputFields } = req.body;
     const propertyName = inputFields.multiSelectProperty;
     const optionValueToRemove = inputFields.optionToRemove;
-    const objectType = inputFields.objectTypeSelect
+    const objectType = inputFields.objectTypeSelect;
 
     // Validate input
     if (!portalId) {
@@ -463,8 +463,9 @@ exports.removePropertyOption = async (req, res) => {
 
     // Fetch the current property value for the specific object
     const objectResponse = await objectApi.getById(objectId, [propertyName]);
-    const currentPropertyValue = objectResponse.body.properties[propertyName];
-
+    console.log('response------',objectResponse)
+    const currentPropertyValue = objectResponse.properties[propertyName];
+    console.log('current===========',currentPropertyValue)
     if (!currentPropertyValue) {
       return res.json({
         outputFields: { message: `Property ${propertyName} not found on the object` }
@@ -473,13 +474,13 @@ exports.removePropertyOption = async (req, res) => {
 
     // Split the current multi-select values into an array
     let valuesArray = currentPropertyValue.split(';');
-
+    console.log('valuesArray===========',valuesArray)
     // Remove the specified option value
     valuesArray = valuesArray.filter(value => value.trim() !== optionValueToRemove.trim());
-
+    console.log('valuesArray  2===========',valuesArray)
     // Join the values back into a string
     const updatedPropertyValue = valuesArray.join(';');
-
+    console.log('updatedPropertyValue===========',updatedPropertyValue)
     // Prepare the properties to update
     const properties = {
       [propertyName]: updatedPropertyValue
@@ -497,7 +498,6 @@ exports.removePropertyOption = async (req, res) => {
     });
   }
 };
-
 
 
 
