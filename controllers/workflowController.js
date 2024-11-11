@@ -165,6 +165,7 @@ exports.getAllObjects = async (req, res) => {
 // Fetch properties for a given object type
 // Modified getProperties function
 exports.getProperties = async (req, res) => {
+  console.log("here .....................",req.body)
   const { objectTypeSelect, filterTypeSelect } = req.body; // Extract objectType and filterType from the request body
 
   if (!objectTypeSelect) {
