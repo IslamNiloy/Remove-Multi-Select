@@ -165,24 +165,27 @@ exports.getAllObjects = async (req, res) => {
 // Fetch properties for a given object type
 // Modified getProperties function
 exports.getProperties = async (req, res) => {
-  console.log("here .....................",req.body)
-  const { objectTypeSelect, filterTypeSelect } = req.body; // Extract objectType and filterType from the request body
-
-  if (!objectTypeSelect) {
-    return res.status(400).json({ error: 'Missing object type parameter' });
-  }
-
   try {
-    const portalId = req.session.portalId  || '47070065'; // Retrieve portalId from session
+    // Extract objectType and filterType from inputFields
+    const { inputFields, portalId } = req.body; // Extract portalId from the request body
+    const objectType = inputFields.objectTypeSelect?.value;
+    const filterType = inputFields.filterTypeSelect?.value;
+
+    // Check if objectType is provided
+    if (!objectType) {
+      return res.status(400).json({ error: 'Missing object type parameter' });
+    }
+
+    // Check if portalId is provided
     if (!portalId) {
-      return res.status(400).json({ error: 'Portal ID not found in session' });
+      return res.status(400).json({ error: 'Portal ID not provided in the request' });
     }
 
     // Retrieve the OAuth token for the portalId
     const accessToken = await getAccessToken(portalId);
 
     // Make the API request to fetch properties for the given object type
-    const response = await axios.get(`https://api.hubapi.com/crm/v3/properties/${objectTypeSelect}`, {
+    const response = await axios.get(`https://api.hubapi.com/crm/v3/properties/${objectType}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
@@ -191,8 +194,8 @@ exports.getProperties = async (req, res) => {
 
     // Filter properties based on fieldType if provided
     let properties = response.data.results;
-    if (filterTypeSelect) {
-      properties = properties.filter((property) => property.fieldType === filterTypeSelect);
+    if (filterType) {
+      properties = properties.filter((property) => property.fieldType === filterType);
     }
 
     // Format the properties into an array with label and value
@@ -201,13 +204,13 @@ exports.getProperties = async (req, res) => {
       value: property.name,
     }));
 
-    // Return the formatted properties as a JSON response
     res.status(200).json({ options: formattedProperties });
   } catch (error) {
-    console.error(`Error fetching properties for ${objectTypeSelect}:`, error.message);
+    console.error('Error fetching properties:', error.message);
     res.status(500).json({ error: 'Error fetching properties.' });
   }
 };
+
 
 
 
