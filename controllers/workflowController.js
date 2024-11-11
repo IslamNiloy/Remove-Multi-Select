@@ -246,7 +246,7 @@ exports.getMultiSelectProperties = async (req, res) => {
 
     // Check if there are no multi-select properties
     if (properties.length === 0) {
-      return res.status(404).json({
+      return res.status(200).json({
         options: [
           {
             label: "No properties available",
@@ -304,7 +304,7 @@ exports.getPropertyOptions = async (req, res) => {
 
     // Check if the property and its options exist
     if (!property || !property.options || property.options.length === 0) {
-      return res.status(404).json({
+      return res.status(200).json({
         options: [
           {
             label: "No option available",
@@ -319,7 +319,7 @@ exports.getPropertyOptions = async (req, res) => {
 
     // Check if there are any visible options
     if (visibleOptions.length === 0) {
-      return res.status(404).json({
+      return res.status(200).json({
         options: [
           {
             label: "No option available",
@@ -345,6 +345,7 @@ exports.getPropertyOptions = async (req, res) => {
 
 exports.removePropertyOption = async (req, res) => {
   try {
+    console.log("req body for remove", req.body)
     // Extract necessary fields from the request body
     const { inputFields, portalId } = req.body;
     const objectType = inputFields.objectTypeSelect?.value;
