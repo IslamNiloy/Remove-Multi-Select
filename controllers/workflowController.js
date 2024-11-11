@@ -214,18 +214,16 @@ exports.getAllObjects = async (req, res) => {
 
 exports.getMultiSelectProperties = async (req, res) => {
   try {
-    console.log(req.body)
-    // Extract objectType and filterType from inputFields
-    const { inputFields, portalId } = req.body; // Extract portalId from the request body
-    const objectType = inputFields.objectTypeSelect?.value;
-    // const filterType = inputFields.filterTypeSelect?.value;
+    console.log("Request Body:", req.body);
 
-    // Check if objectType is provided
+    // Extract objectType and portalId from inputFields and request body
+    const { inputFields, portalId } = req.body;
+    const objectType = inputFields.objectTypeSelect?.value;
+
+    // Validate objectType and portalId
     if (!objectType) {
       return res.status(400).json({ error: 'Missing object type parameter' });
     }
-
-    // Check if portalId is provided
     if (!portalId) {
       return res.status(400).json({ error: 'Portal ID not provided in the request' });
     }
@@ -241,14 +239,12 @@ exports.getMultiSelectProperties = async (req, res) => {
       },
     });
 
-    // Filter properties based on fieldType if provided
-    let properties = response.data.results;
-    if (filterType) {
-      properties = properties.filter((property) => 
-        property.fieldType === 'checkbox' || property.fieldType === 'select');
-    }
+    // Filter properties for 'checkbox' or 'select' field types
+    const properties = response.data.results.filter(
+      (property) => property.fieldType === 'checkbox' || property.fieldType === 'select'
+    );
 
-    // Format the properties into an array with label and value
+    // Format the properties for the dropdown options
     const formattedProperties = properties.map((property) => ({
       label: property.label,
       value: property.name,
@@ -256,10 +252,11 @@ exports.getMultiSelectProperties = async (req, res) => {
 
     res.status(200).json({ options: formattedProperties });
   } catch (error) {
-    console.error('Error fetching properties:', error.message);
-    res.status(500).json({ error: 'Error fetching properties.' });
+    console.error('Error fetching multi-select properties:', error.message);
+    res.status(500).json({ error: 'Error fetching multi-select properties.' });
   }
 };
+
 
 
 
