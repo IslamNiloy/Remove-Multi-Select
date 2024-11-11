@@ -244,6 +244,18 @@ exports.getMultiSelectProperties = async (req, res) => {
       (property) => property.fieldType === 'checkbox' || property.fieldType === 'select'
     );
 
+    // Check if there are no multi-select properties
+    if (properties.length === 0) {
+      return res.status(404).json({
+        options: [
+          {
+            label: "No properties available",
+            value: "None"
+          }
+        ]
+      });
+    }
+
     // Format the properties for the dropdown options
     const formattedProperties = properties.map((property) => ({
       label: property.label,
@@ -262,7 +274,7 @@ exports.getMultiSelectProperties = async (req, res) => {
 
 exports.getPropertyOptions = async (req, res) => {
   try {
-    console.log('Request Body for property option:', req.body);
+    console.log('Request Body:', req.body);
 
     // Extract portalId and inputFields from the request body
     const { inputFields, portalId } = req.body;
@@ -292,7 +304,14 @@ exports.getPropertyOptions = async (req, res) => {
 
     // Check if the property and its options exist
     if (!property || !property.options || property.options.length === 0) {
-      return res.status(404).json({ error: 'Property options not found' });
+      return res.status(404).json({
+        options: [
+          {
+            label: "No option available",
+            value: "None"
+          }
+        ]
+      });
     }
 
     // Filter out hidden options if needed
@@ -300,7 +319,14 @@ exports.getPropertyOptions = async (req, res) => {
 
     // Check if there are any visible options
     if (visibleOptions.length === 0) {
-      return res.status(404).json({ error: 'No visible property options found' });
+      return res.status(404).json({
+        options: [
+          {
+            label: "No option available",
+            value: "None"
+          }
+        ]
+      });
     }
 
     // Format the visible options into an array with label and value
@@ -313,6 +339,58 @@ exports.getPropertyOptions = async (req, res) => {
   } catch (error) {
     console.error('Error fetching property options:', error.message);
     res.status(500).json({ error: 'Error fetching property options.' });
+  }
+};
+
+
+exports.removePropertyOption = async (req, res) => {
+  try {
+    // Extract necessary fields from the request body
+    const { inputFields, portalId } = req.body;
+    const objectType = inputFields.objectTypeSelect?.value;
+    const propertyName = inputFields.multiSelectProperty?.value;
+    const optionValue = inputFields.optionToRemove?.value;
+
+    // Validate input
+    if (!portalId) {
+      return res.json({
+        outputFields: { message: 'Portal ID not provided in the request' }
+      });
+    }
+    if (!objectType || !propertyName || !optionValue) {
+      return res.json({
+        outputFields: { message: 'Missing required parameters' }
+      });
+    }
+
+    // Retrieve the OAuth token for the portalId
+    const accessToken = await getAccessToken(portalId);
+    const hubspotClient = new hubspot.Client();
+    hubspotClient.setAccessToken(accessToken);
+
+    // Fetch the existing property
+    const propertyResponse = await hubspotClient.crm.properties.coreApi.getByName(objectType, propertyName);
+    const property = propertyResponse;
+
+    // Ensure the property and its options exist
+    if (!property || !property.options) {
+      return res.json({
+        outputFields: { message: 'Property or options not found' }
+      });
+    }
+
+    // Filter out the option to be removed
+    const updatedOptions = property.options.filter(option => option.value !== optionValue);
+
+    // Update the property with the remaining options
+    await hubspotClient.crm.properties.coreApi.update(objectType, propertyName, { options: updatedOptions });
+
+    res.json({ outputFields: { message: 'Option removed successfully' } });
+  } catch (error) {
+    console.error('Error removing property option:', error.message);
+    res.json({
+      outputFields: { message: 'Error removing property option: ' + error.message }
+    });
   }
 };
 
