@@ -262,7 +262,8 @@ exports.getMultiSelectProperties = async (req, res) => {
 
 exports.getPropertyOptions = async (req, res) => {
   try {
-    console.log('here...............',req.body)
+    console.log('Request Body for property option:', req.body);
+
     // Extract portalId and inputFields from the request body
     const { inputFields, portalId } = req.body;
     const objectType = inputFields.objectTypeSelect?.value;
@@ -284,15 +285,27 @@ exports.getPropertyOptions = async (req, res) => {
     // Fetch the specific property details from HubSpot
     const propertyResponse = await hubspotClient.crm.properties.coreApi.getByName(objectType, propertyName);
 
+    // Access the property directly from propertyResponse
+    const property = propertyResponse;
+
+    console.log('Property:', property);
+
     // Check if the property and its options exist
-    const property = propertyResponse.body;
     if (!property || !property.options || property.options.length === 0) {
       return res.status(404).json({ error: 'Property options not found' });
     }
 
-    // Format the options into an array with label and value
-    const options = property.options.map(option => ({
-      label: option.label,
+    // Filter out hidden options if needed
+    const visibleOptions = property.options.filter(option => !option.hidden);
+
+    // Check if there are any visible options
+    if (visibleOptions.length === 0) {
+      return res.status(404).json({ error: 'No visible property options found' });
+    }
+
+    // Format the visible options into an array with label and value
+    const options = visibleOptions.map(option => ({
+      label: option.label || 'Unnamed Option',
       value: option.value
     }));
 
