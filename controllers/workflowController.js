@@ -347,7 +347,8 @@ exports.removePropertyOption = async (req, res) => {
   try {
     console.log("req body for remove", req.body)
     // Extract necessary fields from the request body
-    const { inputFields, portalId } = req.body;
+    const portalId = req.body || req.origin.portalId;
+    const { inputFields } = req.body;
     const objectType = inputFields.objectTypeSelect?.value;
     const propertyName = inputFields.multiSelectProperty?.value;
     const optionValue = inputFields.optionToRemove?.value;
