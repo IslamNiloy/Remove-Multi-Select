@@ -19,7 +19,6 @@ if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET) {
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 
-// Scopes for this app will default to `crm.objects.contacts.read`
 // To request others, set the SCOPE environment variable instead
 let SCOPES = ['crm.objects.contacts.read'];
 if (process.env.SCOPE) {
@@ -28,11 +27,7 @@ if (process.env.SCOPE) {
 
 // On successful install, users will be redirected to /oauth-callback
 const REDIRECT_URI = process.env.REDIRECT_URI;
-// const logWithDetails = (level, message, req) => {
-//   const portalId = req.session.portalId || 'unknown';
-//   const email = req.session.email || 'unknown';
-//   logger.log({ level, message, portalId, email });
-// };
+
 
 const authUrl =
   'https://app.hubspot.com/oauth/authorize' +
@@ -43,7 +38,6 @@ const authUrl =
 exports.install =  (req, res) => {
   res.redirect(authUrl);
   console.log('===> Step 2: User is being prompted for consent by HubSpot');
-  // logWithDetails('info', 'Redirected user to HubSpot OAuth URL for installation', req);
 };
 
 exports.oauthCallback = async (req, res) => {
@@ -65,11 +59,9 @@ exports.oauthCallback = async (req, res) => {
       if (!accessToken) {
         return res.redirect(`/error?msg=Token exchange failed`);
       }
-
-      // Store portalId in the session
       req.session.portalId = portalId;
 
-      res.redirect(`/`);  // Redirect to home or dashboard after successful token exchange
+      res.redirect(`/`);  
     } catch (error) {
       console.error('Error during token exchange:', error.message);
       res.redirect(`/error?msg=${encodeURIComponent(error.message)}`);
