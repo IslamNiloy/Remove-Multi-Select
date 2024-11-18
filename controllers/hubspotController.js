@@ -72,10 +72,6 @@ exports.oauthCallback = async (req, res) => {
 };
 
 
-//==========================================//
-//   Exchanging Proof for an Access Token   //
-//==========================================//
-
 const getPortalIdFromAccessToken = async (accessToken) => {
   try {
     const response = await request({
