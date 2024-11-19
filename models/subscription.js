@@ -20,10 +20,6 @@ const SubscriptionSchema = new mongoose.Schema({
     packagePrice: {type: Number},
     lastAppUsageDate: {type: Date},
     usagePercentage: {type: Number},
-    //API call count for checking phone number API
-    checkPhoneNumberApiCallCount: { type: Number },
-    checkPhoneNumberTotalApiCallCount: { type: Number },
-    //API call count for checking phone number API
     joiningDate: { type: Date },
     packageStartDate: { type: Date },
     packageEndDate: { type: Date },

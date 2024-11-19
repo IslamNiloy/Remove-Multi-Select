@@ -1,6 +1,7 @@
 const hubspot = require('@hubspot/api-client');
 const { getAccessToken } = require('./hubspotController');  // Import the token logic
 const axios = require('axios');
+const { updateAPICount } = require('./CountLogics/packageConditionController');
 
 exports.getAllObjects = async (req, res) => {
   try {
@@ -188,7 +189,6 @@ exports.getPropertyOptions = async (req, res) => {
 exports.removePropertyOption = async (req, res) => {
   try {
     console.log("req body for remove", req.body);
-
     // Extract necessary fields from the request body
     const portalId = req.body.origin.portalId;
     const { objectId } = req.body.object;
@@ -196,7 +196,7 @@ exports.removePropertyOption = async (req, res) => {
     const propertyName = inputFields.multiSelectProperty;
     const optionValueToRemove = inputFields.optionToRemove;
     const objectType = inputFields.objectTypeSelect;
-
+    //updateAPICount(portalId); //will open later
     // Validate input
     if (!portalId) {
       return res.json({
