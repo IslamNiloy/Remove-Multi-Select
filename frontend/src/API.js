@@ -1,0 +1,1 @@
+export const stripe_admin_panel_api = "http://localhost:5000"

@@ -3,6 +3,7 @@ import { legacy_createStore as createStore } from 'redux';
 import {  applyMiddleware, combineReducers } from 'redux';
 import { composeWithDevTools } from "@redux-devtools/extension";
 import {thunk} from 'redux-thunk';
+import { getAllPackageReducer } from './Reducers/PackageReducer';
 
 
 const initialState = {
@@ -16,6 +17,7 @@ const initialState = {
 
 const rootReducer = combineReducers({
   // Add other reducers here
+  getAllPackage: getAllPackageReducer
 });
 
 const store = createStore(
