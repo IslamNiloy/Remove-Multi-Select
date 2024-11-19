@@ -4,6 +4,7 @@ const request = require('request-promise-native');
 const NodeCache = require('node-cache');
 const session = require('express-session');
 const Token = require('../models/tokenModel');
+const User = require('../models/user'); 
 // const opn = require('open');
 const app = express();
 
@@ -37,11 +38,9 @@ const authUrl =
 
 exports.install =  (req, res) => {
   res.redirect(authUrl);
-  console.log('===> Step 2: User is being prompted for consent by HubSpot');
 };
 
 exports.oauthCallback = async (req, res) => {
-  console.log('===> Step 3: Handling the request sent by the server');
   if (req.query.code) {
     console.log('       > Received an authorization token');
 
@@ -78,6 +77,8 @@ const getPortalIdFromAccessToken = async (accessToken) => {
       url: `https://api.hubapi.com/oauth/v1/access-tokens/${accessToken}`,
       json: true
     });
+    console.log(`Response in getPortalIdFromAccessToken: ${JSON.stringify(response)}`)
+    this.insertIntoUser(response);
     return response.hub_id;  // This will give you the portalId (HubSpot account ID)
   } catch (e) {
     console.error('Error retrieving portalId:', e.message);
@@ -290,3 +291,55 @@ exports.home = async (req, res) => {
   `);
   res.end();
 };
+
+
+  exports.insertIntoUser = async (data) => {
+    try {
+      // Destructure the data you received
+      const {
+        token,
+        user,
+        hub_domain,
+        signed_access_token,
+        hub_id,
+        app_id,
+        expires_in,
+        user_id,
+      } = data;
+
+      const existingUser = await User.findOne({ portalId: hub_id });
+    
+      if (existingUser) {
+        console.log('User with this hub_id already exists. Skipping insertion.');
+        return;
+      }
+  
+      // Create a new user object with the mapped data
+      const newUser = new User({
+        email: user,
+        name: '', // Add the name if available
+        appName: app_id+"-remove-multi-select", // Add the app name if available
+        companyName: '', // Add the company name if available
+        phoneNumber: '', // Add the phone number if available
+        countryCode: '', // Add the country code if available
+        portalId: hub_id,
+        accountType: '', // Add the account type if available
+        timeZone: '', // Add the time zone if available
+        companyCurrency: '', // Add the company currency if available
+        uiDomain: hub_domain,
+        dataHostingLocation: signed_access_token.hublet,
+        additionalCurrencies: [], // Add additional currencies if available
+        refreshToken: '', // Add the refresh token if available
+        accessToken: token,
+        installationDate: new Date(), // Use the current date
+        expiresIn: expires_in,
+      });
+  
+      // Save the user to the database
+      await newUser.save();
+      console.log('User data inserted successfully!');
+    } catch (error) {
+      console.error('Error inserting user data:', error);
+    }
+  };
+  
