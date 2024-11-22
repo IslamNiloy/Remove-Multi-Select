@@ -5,6 +5,7 @@ const NodeCache = require('node-cache');
 const session = require('express-session');
 const Token = require('../models/tokenModel');
 const User = require('../models/user'); 
+const Subscription = require('../models/subscription')
 // const opn = require('open');
 const app = express();
 
@@ -78,7 +79,8 @@ const getPortalIdFromAccessToken = async (accessToken) => {
       json: true
     });
     console.log(`Response in getPortalIdFromAccessToken: ${JSON.stringify(response)}`)
-    this.insertIntoUser(response);
+    const newUser = this.insertIntoUser(response);
+    
     return response.hub_id;  // This will give you the portalId (HubSpot account ID)
   } catch (e) {
     console.error('Error retrieving portalId:', e.message);
@@ -293,6 +295,43 @@ exports.home = async (req, res) => {
 };
 
 
+
+exports.insertSubscription = async (userId, portalId) => {
+  try {
+    console.log("portalId = " + portalId);
+    console.log("userId = " + userId);
+      // Define a new subscription
+      const newSubscription = new Subscription({
+          user: userId, // Replace with an actual user ID
+          portalID: portalId, // Replace with the actual portal ID
+          limit: 100, // Example package limit
+          apiCallCount: 0, // Initial API call count
+          packageId: 'null', // Replace with the actual package ID
+          totalApiCallCount: 0, // Initial total API call count
+          monthAPICallCount: 0, // Initial monthly API call count
+          hubspotDealId: 'hsDeal123', // Replace with the actual HubSpot deal ID
+          packageUpgradeDate: null, // No upgrade date initially
+          packageDowngradeDate: null, // No downgrade date initially
+          packagePrice: 49.99, // Replace with actual package price
+          lastAppUsageDate: new Date(), // Last usage date is the current date
+          usagePercentage: 0, // Initial usage percentage
+          joiningDate: new Date(), // Joining date is the current date
+          packageStartDate: new Date(), // Start date is the current date
+          packageEndDate: new Date(new Date().setMonth(new Date().getMonth() + 1)), // 1 month from today
+          apiCallLimit: 1000 // Replace with a custom limit if needed
+      });
+
+      // Save the subscription to the database
+      const savedSubscription = await newSubscription.save();
+
+      console.log('Subscription inserted successfully:', savedSubscription);
+  } catch (error) {
+      console.error('Error inserting subscription:', error);
+  }
+};
+
+
+
   exports.insertIntoUser = async (data) => {
     try {
       // Destructure the data you received
@@ -337,7 +376,13 @@ exports.home = async (req, res) => {
   
       // Save the user to the database
       await newUser.save();
+      console.log(`subscription: 1 = ${newUser._id}`);
+      console.log(`data.hub_id: 1 = ${data.hub_id}`);
+      console.log(`hub_id: 1 = ${hub_id}`);
+      this.insertSubscription(newUser._id, data.hub_id )
       console.log('User data inserted successfully!');
+      return newUser;
+
     } catch (error) {
       console.error('Error inserting user data:', error);
     }
