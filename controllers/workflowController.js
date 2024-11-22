@@ -196,74 +196,79 @@ exports.removePropertyOption = async (req, res) => {
     const propertyName = inputFields.multiSelectProperty;
     const optionValueToRemove = inputFields.optionToRemove;
     const objectType = inputFields.objectTypeSelect;
-    //updateAPICount(portalId); //will open later
+    const updatedAPICOUNT = updateAPICount(portalId); //will open later
+    console.log(`Updated API count : ${updatedAPICOUNT}`);
     // Validate input
-    if (!portalId) {
-      return res.json({
-        outputFields: { message: 'Portal ID not provided in the request' }
-      });
+    if(updatedAPICOUNT < 100){
+      if (!portalId) {
+        return res.json({
+          outputFields: { message: 'Portal ID not provided in the request' }
+        });
+      }
+      if (!objectId || !objectType || !propertyName || !optionValueToRemove) {
+        return res.json({
+          outputFields: { message: 'Missing required parameters' }
+        });
+      }
+  
+      // Retrieve the OAuth token for the portalId
+      const accessToken = await getAccessToken(portalId);
+      if (!accessToken) {
+        return res.json({
+          outputFields: { message: 'Failed to retrieve access token' }
+        });
+      }
+  
+      // Initialize HubSpot client with the access token
+      const hubspotClient = new hubspot.Client({ accessToken });
+  
+      // Use the appropriate HubSpot API client based on the object type
+      let objectApi;
+      if (objectType === 'contacts') {
+        objectApi = hubspotClient.crm.contacts.basicApi;
+      } else if (objectType === 'deals') {
+        objectApi = hubspotClient.crm.deals.basicApi;
+      } else if (objectType === 'companies') {
+        objectApi = hubspotClient.crm.companies.basicApi;
+      } else {
+        return res.json({
+          outputFields: { message: `Unsupported object type: ${objectType}` }
+        });
+      }
+  
+      // Fetch the current property value for the specific object
+      const objectResponse = await objectApi.getById(objectId, [propertyName]);
+      console.log('response------',objectResponse)
+      const currentPropertyValue = objectResponse.properties[propertyName];
+      console.log('current===========',currentPropertyValue)
+      if (!currentPropertyValue) {
+        return res.json({
+          outputFields: { message: `Property ${propertyName} not found on the object` }
+        });
+      }
+  
+      // Split the current multi-select values into an array
+      let valuesArray = currentPropertyValue.split(';');
+      console.log('valuesArray===========',valuesArray)
+      // Remove the specified option value
+      valuesArray = valuesArray.filter(value => value.trim() !== optionValueToRemove.trim());
+      console.log('valuesArray  2===========',valuesArray)
+      // Join the values back into a string
+      const updatedPropertyValue = valuesArray.join(';');
+      console.log('updatedPropertyValue===========',updatedPropertyValue)
+      // Prepare the properties to update
+      const properties = {
+        [propertyName]: updatedPropertyValue
+      };
+  
+      // Update the object with the new property value
+      await objectApi.update(objectId, { properties });
+  
+      // Respond with a success message
+      res.json({ outputFields: { message: 'Option value removed successfully' } });
+    }else{
+      res.json({ outputFields: { message: 'api limit exceeded' } });
     }
-    if (!objectId || !objectType || !propertyName || !optionValueToRemove) {
-      return res.json({
-        outputFields: { message: 'Missing required parameters' }
-      });
-    }
-
-    // Retrieve the OAuth token for the portalId
-    const accessToken = await getAccessToken(portalId);
-    if (!accessToken) {
-      return res.json({
-        outputFields: { message: 'Failed to retrieve access token' }
-      });
-    }
-
-    // Initialize HubSpot client with the access token
-    const hubspotClient = new hubspot.Client({ accessToken });
-
-    // Use the appropriate HubSpot API client based on the object type
-    let objectApi;
-    if (objectType === 'contacts') {
-      objectApi = hubspotClient.crm.contacts.basicApi;
-    } else if (objectType === 'deals') {
-      objectApi = hubspotClient.crm.deals.basicApi;
-    } else if (objectType === 'companies') {
-      objectApi = hubspotClient.crm.companies.basicApi;
-    } else {
-      return res.json({
-        outputFields: { message: `Unsupported object type: ${objectType}` }
-      });
-    }
-
-    // Fetch the current property value for the specific object
-    const objectResponse = await objectApi.getById(objectId, [propertyName]);
-    console.log('response------',objectResponse)
-    const currentPropertyValue = objectResponse.properties[propertyName];
-    console.log('current===========',currentPropertyValue)
-    if (!currentPropertyValue) {
-      return res.json({
-        outputFields: { message: `Property ${propertyName} not found on the object` }
-      });
-    }
-
-    // Split the current multi-select values into an array
-    let valuesArray = currentPropertyValue.split(';');
-    console.log('valuesArray===========',valuesArray)
-    // Remove the specified option value
-    valuesArray = valuesArray.filter(value => value.trim() !== optionValueToRemove.trim());
-    console.log('valuesArray  2===========',valuesArray)
-    // Join the values back into a string
-    const updatedPropertyValue = valuesArray.join(';');
-    console.log('updatedPropertyValue===========',updatedPropertyValue)
-    // Prepare the properties to update
-    const properties = {
-      [propertyName]: updatedPropertyValue
-    };
-
-    // Update the object with the new property value
-    await objectApi.update(objectId, { properties });
-
-    // Respond with a success message
-    res.json({ outputFields: { message: 'Option value removed successfully' } });
   } catch (error) {
     console.error('Error removing option value:', error.message);
     res.json({
