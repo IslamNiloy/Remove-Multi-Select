@@ -198,10 +198,10 @@ exports.removePropertyOption = async (req, res) => {
     const optionValueToRemove = inputFields.optionToRemove;
     const objectType = inputFields.objectTypeSelect;
     // const updatedAPICOUNT = updateAPICount(portalId); //will open later
-    console.log(`Updated API count : ${JSON.stringify(updatedAPICOUNT)}`);
+    // console.log(`Updated API count : ${JSON.stringify(updatedAPICOUNT)}`);
     const subscription = await Subscription.findOne({ portalID: portalId });
 
-    const updatedAPICOUNT = subscription.apiCallCount;
+    let updatedAPICOUNT = subscription.apiCallCount;
     // Validate input
     if(updatedAPICOUNT < 100){
       if (!portalId) {
