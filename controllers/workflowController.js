@@ -226,22 +226,8 @@ exports.removePropertyOption = async (req, res) => {
       // Initialize HubSpot client with the access token
       const hubspotClient = new hubspot.Client({ accessToken });
   
-      // Use the appropriate HubSpot API client based on the object type
-      let objectApi;
-      if (objectType === 'contacts') {
-        objectApi = hubspotClient.crm.contacts.basicApi;
-      } else if (objectType === 'deals') {
-        objectApi = hubspotClient.crm.deals.basicApi;
-      } else if (objectType === 'companies') {
-        objectApi = hubspotClient.crm.companies.basicApi; 
-      }else if (objectType === 'tickets') {
-          objectApi = hubspotClient.crm.tickets.basicApi;
-      } else {
-        objectApi = hubspotClient.crm.objects.basicApi;
-      }
-  
       // Fetch the current property value for the specific object
-      const objectResponse = await objectApi.getById(objectId, [propertyName]);
+      const objectResponse = await hubspotClient.crm.objects.basicApi.getById(objectType, objectId, [propertyName]);
       console.log('response------',objectResponse)
       const currentPropertyValue = objectResponse.properties[propertyName];
       console.log('current===========',currentPropertyValue)
@@ -266,7 +252,7 @@ exports.removePropertyOption = async (req, res) => {
       };
   
       // Update the object with the new property value
-      await objectApi.update(objectId, { properties });
+      await hubspotClient.crm.objects.basicApi.update(objectType, objectId, { properties });
       updatedAPICOUNT = updatedAPICOUNT +1 
       await Subscription.updateOne(
         { portalID: portalId }, // Filter by portal ID
