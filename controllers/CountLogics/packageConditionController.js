@@ -17,6 +17,8 @@ setInterval(async () => {
                           }},
                 { new: true, upsert: false }
             );
+            console.log(`userId in updateAPICount setInterval: ${JSON.stringify(userId)}`);
+
             delete countBuffer[userId];  // Clear buffer for the user after updating
         } catch (error) {
             console.error(`Failed to update user ${userId}:`, error);
@@ -46,6 +48,7 @@ exports.updateAPICount = async (portalId) => {
         console.log(`countBuffer[user._id].apiCalls =  ${countBuffer[user._id].apiCalls}`);
         console.log(`countBuffer[user._id].totalApiCalls =  ${countBuffer[user._id].totalApiCalls}`);
         const subscription = await Subscription.findOne({ portalID: portalId });
+        console.log(`subscription in updateAPICount : ${JSON.stringify(subscription)}`);
 
         return subscription.apiCallCount;
     } catch (error) {
