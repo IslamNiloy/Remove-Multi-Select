@@ -45,7 +45,9 @@ exports.updateAPICount = async (portalId) => {
         countBuffer[user._id].totalApiCalls += 1;
         console.log(`countBuffer[user._id].apiCalls =  ${countBuffer[user._id].apiCalls}`);
         console.log(`countBuffer[user._id].totalApiCalls =  ${countBuffer[user._id].totalApiCalls}`);
-        return countBuffer[user._id].apiCalls;
+        const subscription = await Subscription.findOne({ portalID: portalId });
+
+        return subscription.apiCallCount;
     } catch (error) {
         console.error('Error in updateAPICount function:', error);
     }
