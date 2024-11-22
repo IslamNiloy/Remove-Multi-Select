@@ -2,6 +2,7 @@ const hubspot = require('@hubspot/api-client');
 const { getAccessToken } = require('./hubspotController');  // Import the token logic
 const axios = require('axios');
 const { updateAPICount } = require('./CountLogics/packageConditionController');
+const Subscription = require('../models/subscription')
 
 exports.getAllObjects = async (req, res) => {
   try {
@@ -196,8 +197,11 @@ exports.removePropertyOption = async (req, res) => {
     const propertyName = inputFields.multiSelectProperty;
     const optionValueToRemove = inputFields.optionToRemove;
     const objectType = inputFields.objectTypeSelect;
-    const updatedAPICOUNT = updateAPICount(portalId); //will open later
+    // const updatedAPICOUNT = updateAPICount(portalId); //will open later
     console.log(`Updated API count : ${JSON.stringify(updatedAPICOUNT)}`);
+    const subscription = await Subscription.findOne({ portalID: portalId });
+
+    const updatedAPICOUNT = subscription.apiCallCount;
     // Validate input
     if(updatedAPICOUNT < 100){
       if (!portalId) {
@@ -263,6 +267,11 @@ exports.removePropertyOption = async (req, res) => {
   
       // Update the object with the new property value
       await objectApi.update(objectId, { properties });
+      updatedAPICOUNT = updatedAPICOUNT +1 
+      await Subscription.updateOne(
+        { portalID: portalId }, // Filter by portal ID
+        { $set: { apiCallCount: updatedAPICOUNT } } // Update the apiCallCount field
+      );
   
       // Respond with a success message
       res.json({ outputFields: { message: 'Option value removed successfully' } });

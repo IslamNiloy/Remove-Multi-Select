@@ -279,7 +279,7 @@ exports.home = async (req, res) => {
       <main>
         <section class="description">
           <h2>About Our App</h2>
-          <p>Welcome to the Hubxpert App, your go-to solution for seamless HubSpot integration and data formatting. Our app provides custom workflow actions to format data, making your HubSpot experience more efficient and effective.</p>
+          <p>Welcome to the Hubxpert App, your ultimate solution for managing HubSpot data with ease. Our app offers powerful custom workflow actions to remove unwanted multi-select options, streamlining your HubSpot experience and ensuring your data remains clean and organized.</p>
         </section>
         <section class="install-section">
           <a href="${process.env.INSTALL_URL}" class="install-button">Install the App</a>
