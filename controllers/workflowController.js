@@ -229,11 +229,11 @@ exports.removePropertyOption = async (req, res) => {
       } else if (objectType === 'deals') {
         objectApi = hubspotClient.crm.deals.basicApi;
       } else if (objectType === 'companies') {
-        objectApi = hubspotClient.crm.companies.basicApi;
+        objectApi = hubspotClient.crm.companies.basicApi; 
+      }else if (objectType === 'tickets') {
+          objectApi = hubspotClient.crm.tickets.basicApi;
       } else {
-        return res.json({
-          outputFields: { message: `Unsupported object type: ${objectType}` }
-        });
+        objectApi = hubspotClient.crm.objects.basicApi;
       }
   
       // Fetch the current property value for the specific object
