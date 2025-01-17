@@ -10,6 +10,7 @@ app.use(express.json());
 const PORT = 3000;
 const hubspotRoutes = require('./routes/hubspotRoutes');
 const workflowRoutes = require('./routes/workflowRoutes');
+const saraProjectRoutes = require('./routes/saraProjectRoutes');
 
 
 // Use morgan to log HTTP requests
@@ -37,6 +38,7 @@ mongoose.connect(mongoUri)
 // Routes
 app.use('/', hubspotRoutes);
 app.use('/', workflowRoutes);
+app.use('/', saraProjectRoutes);
 
 
 // Start server
