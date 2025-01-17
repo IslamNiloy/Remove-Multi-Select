@@ -1,14 +1,14 @@
   require('dotenv').config();
   const hubspot = require('@hubspot/api-client');
 
-  exports.checkAssociateCompany = async (event) => {
-    console.log('Event:', event);
+  exports.checkAssociateCompany = async (req,res) => {
+    console.log('Reqest Body:', req.body);
     const hubspotClient = new hubspot.Client({ accessToken: process.env.HUBSPOT_ACCESS_TOKEN });
-
-  
+    const { inputFields, object } = req.body;
+    
     // Input: Extract Company Name from the workflow action
-    const { companyName } = event.inputFields; // Input company name
-    const contactId = event.object.objectId; // ID of the contact enrolled in the workflow
+    const companyName  = inputFields.companyName; // Input company name
+    const contactId = object.objectId; // ID of the contact enrolled in the workflow
     const objectType = "contact";
     const toObjectType = "company";
     const limit = 500;
