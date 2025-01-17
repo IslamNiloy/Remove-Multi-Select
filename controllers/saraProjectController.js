@@ -3,7 +3,7 @@
 
   exports.checkAssociateCompany = async (req,res) => {
     console.log('Reqest Body:', req.body);
-    const hubspotClient = new hubspot.Client({ accessToken: process.env.HUBSPOT_ACCESS_TOKEN });
+    const hubspotClient = new hubspot.Client({ accessToken: process.env.HUBSPOT_HAPI_KEY });
     const { inputFields, object } = req.body;
     
     // Input: Extract Company Name from the workflow action
